@@ -476,7 +476,7 @@ export class Secrets {
     }
 
     extractShareComponents(share: string): { bits: number; id: number; data: string } {
-        
+
         // Extract the bits from the first character of the share (Base 36)
         const bits = parseInt(share.charAt(0), 36);
         if (!Number.isInteger(bits) || bits < settings.minBits || bits > settings.maxBits) {
@@ -484,21 +484,21 @@ export class Secrets {
                 `Invalid share: Number of bits must be an integer between ${settings.minBits} and ${settings.maxBits}, inclusive.`
             );
         }
-    
+
         // Calculate max shares and determine the ID length
         const maxShares = Math.pow(2, bits) - 1;
         const idLength = maxShares.toString(this.config.radix).length;
-    
+
         // Define a regex to extract the components of the share
         const regex = new RegExp(
             `^([a-kA-K3-9]{1})([a-fA-F0-9]{${idLength}})([a-fA-F0-9]+)$`
         );
-    
+
         const match = regex.exec(share);
         if (!match) {
             throw new Error("The share data provided is invalid: " + share);
         }
-    
+
         // Extract and validate the share ID
         const id = parseInt(match[2], this.config.radix);
         if (!Number.isInteger(id) || id < 1 || id > maxShares) {
@@ -506,7 +506,7 @@ export class Secrets {
                 `Invalid share: Share ID must be an integer between 1 and ${maxShares}, inclusive.`
             );
         }
-    
+
         // Return the extracted components as an object
         return {
             bits,
@@ -514,31 +514,31 @@ export class Secrets {
             data: match[3], // Hexadecimal data of the share
         }
     };
-    
+
 
     combine(shares: string[], at: number = 0): string {
         if (!shares || shares.length === 0) {
             throw new Error("No shares provided for combination.");
         }
-    
+
         let setBits: number | undefined;
         const x: number[] = [];
         const y: number[][] = [];
-    
+
         for (const shareStr of shares) {
             const share = this.extractShareComponents(shareStr);
-    
+
             // Validate bit settings across shares
             if (setBits === undefined) {
                 setBits = share.bits;
             } else if (share.bits !== setBits) {
                 throw new Error("Mismatched shares: Different bit settings.");
             }
-    
+
             // Process share if its ID is not already in `x`
             if (!x.includes(share.id)) {
                 x.push(share.id);
-    
+
                 const splitShare = Secrets.splitNumStringToIntArray(this.hex2bin(share.data), this.config.bits);
 
                 for (let j = 0; j < splitShare.length; j++) {
@@ -549,24 +549,24 @@ export class Secrets {
                 }
             }
         }
-    
+
         // Use Lagrange interpolation to reconstruct the secret
         let result = "";
         for (const shareRow of y) {
-            const interpolatedValue = Secrets.lagrange(at, x, shareRow,this.config);
+            const interpolatedValue = Secrets.lagrange(at, x, shareRow, this.config);
             result = this.padLeft(interpolatedValue.toString(2)) + result;
         }
-    
+
         // If `at` is non-zero, return the interpolated share directly
         if (at >= 1) {
             return this.bin2hex(result);
         }
-    
+
         // Remove the padding marker ("1") added during sharing and convert to hex
         const secretBinary = result.slice(result.indexOf("1") + 1);
         return this.bin2hex(secretBinary);
     }
-    random(bits:number): string {
+    random(bits: number): string {
         if (
             typeof bits !== "number" ||
             bits % 1 !== 0 ||
@@ -585,30 +585,67 @@ export class Secrets {
         if (typeof id === "string") {
             id = parseInt(id, this.config.radix);
         }
-    
+
         // Validate `id`
         if (!Number.isInteger(id) || id < 1 || id >= Math.pow(2, this.config.bits)) {
             throw new Error(
                 `Invalid 'id': Must be an integer between 1 and ${Math.pow(2, this.config.bits) - 1}, inclusive.`
             );
         }
-    
+
         // Convert `id` to the required radix representation
         const radid = id.toString(this.config.radix);
-    
+
         // Validate shares and extract the first share's components
         const firstShare = shares[0];
         const share = this.extractShareComponents(firstShare);
-    
+
         // Construct the new share
         return Secrets.constructPublicShareString(
             share.bits,  // Use the same bit setting as the first share
             Number(radid),       // New share's ID in the configured radix
             this.combine(shares, id) // Combine existing shares to compute the new share
-            ,this.config
+            , this.config
         );
     }
-    
+
+    static hex2str(hex: string): string {
+
+        let str = '';
+
+        for (let i = 0; i < hex.length; i += 2) {
+
+            str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+
+        }
+
+        return str;
+
+    }
+
+    static str2hex(str: string): string {
+
+        let hex = '';
+
+        for (let i = 0; i < str.length; i++) {
+
+            hex += ('0' + str.charCodeAt(i).toString(16)).slice(-2);
+
+        }
+
+        return hex;
+
+    }
+
+    str2hex(str: string): string {
+
+        return Secrets.str2hex(str);
+    }
+
+    hex2str(hex: string): string {
+        return Secrets.hex2str(hex);
+    }
+
 
 
 
