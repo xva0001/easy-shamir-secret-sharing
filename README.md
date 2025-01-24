@@ -95,3 +95,5 @@ Author of this fork and modifications: xva001
  no warranty is given that this code is correct, and the author cannot be held responsible for any errors or omissions.
  rewrite by xva001
  purpose: use typescript to rewrite the secrets.js-grempe library to use on other project (xva001 fogx -- nuxt) with no dependency on node crypto library.
+
+[repo](https://github.com/xva0001/secret_grempe_rewrite/tree/main)
