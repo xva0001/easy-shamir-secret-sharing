@@ -1,6 +1,6 @@
 {
   "name": "secretsjs_grempe_rewrite",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "src/secrets_re.ts",
   "files": [
     "src",
