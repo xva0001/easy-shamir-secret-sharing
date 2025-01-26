@@ -1,3 +1,8 @@
+# Warining 
+
+
+error here, testing now
+
 # Secrets Library
 
 `secrets_re.ts` 是一個用於秘密分享和重建的 TypeScript 庫，基於 Shamir 的秘密分享方案。此庫允許將一個秘密分割成多個分享，並且需要一定數量的分享才能重建原始秘密。
