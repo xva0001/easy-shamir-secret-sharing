@@ -1,6 +1,6 @@
 import http from 'http';
 
-import { Secrets } from '../secrets_re';
+import { Secrets } from '../dist/secrets_re.js';
 
 const secrets = new Secrets();
 
