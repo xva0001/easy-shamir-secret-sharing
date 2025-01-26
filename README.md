@@ -9,7 +9,7 @@
 First, make sure you have installed the necessary dependencies:
 
 ```sh
-npm install
+npm install npm i secretsjs_grempe_rewrite
 ```
 
 ## 使用方法 / Usage
