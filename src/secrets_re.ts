@@ -1,15 +1,28 @@
+//we use lib, so that is @deprecated
+
+
+//@deprecated
+
+
+
 // @preserve author Alexander Stetsyuk
 // @preserve author Glenn Rempe <glenn@rempe.us>
 // @license MIT
 
-// reference : https://www.npmjs.com/package/secrets.js-grempe
-// The MIT License (MIT)
-// Author of the original secrets.js library: Alexander Stetsyuk, Glenn Rempe
-// Author of this fork and modifications: xva001
+/*jslint passfail: false, bitwise: true, nomen: true, plusplus: true, todo: false, maxerr: 1000 */
+/*global define, require, module, exports, window, Uint32Array */
 
-// no warranty is given that this code is correct, and the author cannot be held responsible for any errors or omissions.
-// rewrite by xva001
-// purpose: use typescript to rewrite the secrets.js-grempe library to use on other project (xva001 fogx -- nuxt) with no dependency on node crypto library. 
+// eslint : http://eslint.org/docs/configuring/
+/*eslint-env node, browser, jasmine */
+/*eslint no-underscore-dangle:0 */
+
+// UMD (Universal Module Definition)
+// Uses Node, AMD or browser globals to create a module. This module creates
+// a global even when AMD is used. This is useful if you have some scripts
+// that are loaded by an AMD loader, but they still want access to globals.
+// See : https://github.com/umdjs/umd
+// See : https://github.com/umdjs/umd/blob/master/returnExportsGlobal.js
+//
 
 import forge from "node-forge";
 
@@ -48,7 +61,7 @@ type UserConfig = Partial<{
 
 
 
-const settings = {
+export const settings = {
     bits: 8,
     radix: 16,
     minBits: 3,
@@ -202,10 +215,7 @@ export class Secrets {
     }
 
 
-    static splitNumStringToIntArray(
-        str: string,
-        padLength?: number
-    ): number[] {
+    static splitNumStringToIntArray(str: string, padLength?: number): number[] {
         const parts: number[] = [];
 
         // 如果有 padLength，先對字串進行填充
@@ -252,29 +262,38 @@ export class Secrets {
     // corresponding elements constituting points on the polynomial.
     //拉格朗日插值多項式
     static lagrange(at: number, x: number[], y: number[], config: Config): number {
-        let sum = 0; // 插值多項式的結果
+        let sum = 0; // 插值多项式的结果
         const len = x.length;
 
         for (let i = 0; i < len; i++) {
-            if (!y[i]) continue; // 跳過 y[i] 為 0 的情況
+            // 如果插值点刚好等于 x[i]，直接返回 y[i]
+            if (x[i] === at) {
+                return y[i];
+            }
 
-            let product = config.logs[y[i]]; // 初始化 product 為 log(y[i])
+            // 跳过无效的 y[i]
+            if (y[i] === 0 || !config.logs[y[i]]) continue;
 
+            let product = config.logs[y[i]]; // 初始化 product 为 log(y[i])
             for (let j = 0; j < len; j++) {
-                if (i === j) continue; // 跳過自己
-
-                if (at === x[j]) {
-                    product = -1; // 特殊情況，直接設為 -1
-                    break;
-                }
+                if (i === j) continue; // 跳过自己
 
                 const atXorXj = at ^ x[j];
                 const xiXorXj = x[i] ^ x[j];
+
+                // 处理特殊情况：分母或分子为 0
+                if (atXorXj === 0 || xiXorXj === 0) {
+                    product = -1;
+                    break;
+                }
+
                 product = (product + config.logs[atXorXj] - config.logs[xiXorXj] + config.maxShares) % config.maxShares;
             }
 
-            // 累積到 sum，檢查特殊情況
-            sum = product === -1 ? sum : sum ^ config.exps[product];
+            // 如果未发生特殊情况，累积结果
+            if (product !== -1) {
+                sum ^= config.exps[product];
+            }
         }
 
         return sum;
@@ -356,38 +375,59 @@ export class Secrets {
      * 初始化方法，構造對數表和指數表
      */
     private init(): void {
-        const { bits, size, maxShares } = this.config;
-        const { primitivePolynomials, minBits, maxBits } = settings;
+        const { bits, size } = this.config;
+        const { primitivePolynomials } = settings;
 
-        // 檢查 bits 的合法性
-        if (bits < minBits || bits > maxBits) {
-            throw new Error(`Bits must be between ${minBits} and ${maxBits}.`);
+        // 检查位宽合法性
+        if (bits < 3 || bits > 20) {
+            throw new Error(`Bits must be between 3 and 20.`);
         }
 
-        // 獲取對應位數的原始多項式
         const primitive = primitivePolynomials[bits];
         if (!primitive) {
             throw new Error(`No primitive polynomial found for bits=${bits}.`);
         }
 
-        const logs: number[] = [];
-        const exps: number[] = [];
-        let x = 1;
+        // 初始化 logs 和 exps
+        const logs: number[] = new Array(size).fill(-1); // 默认值为 -1
+        const exps: number[] = new Array(size);
 
-        // 構造對數和指數表
-        for (let i = 0; i < size; i++) {
-            exps[i] = x;
-            logs[x] = i;
-            x = x << 1; // 左移 1 位
+        let x = 1; // 初始值为 1
+        for (let i = 0; i < size - 1; i++) {
+            // 检查 x 是否重复或超出范围
+            if (logs[x] !== -1) {
+                throw new Error(`Duplicate x value: ${x} at step ${i}`);
+            }
+            if (x < 0 || x >= size) {
+                throw new Error(`Invalid x value: ${x} at step ${i}`);
+            }
+
+            exps[i] = x; // 填充指数表
+            logs[x] = i; // 填充对数表
+
+            // 更新 x，左移并归约
+            x = (x << 1)
             if (x >= size) {
-                x = x ^ primitive; // XOR
-                x = x & maxShares; // AND
+                x = x ^ primitive // Bitwise XOR assignment
+                x = x & config_re.maxShares // Bitwise AND assignment
             }
         }
 
+        // 验证 logs 和 exps 的双射关系
+        for (let i = 0; i < size - 1; i++) {
+            if (logs[exps[i]] !== i) {
+                throw new Error(`Mismatch in logs and exps at index ${i}`);
+            }
+        }
+
+        // 将 logs 和 exps 表赋值到配置中
         this.config.logs = logs;
         this.config.exps = exps;
+
+        console.log("Exps length:", exps.length, "Logs length:", logs.length);
     }
+
+
 
     /**
      * 設置隨機數生成器
@@ -408,9 +448,21 @@ export class Secrets {
     private padLeft(input: string, length: number = this.config.bits): string {
         return input.padStart(length, "0");
     }
-    private splitNumStringToIntArray(binaryString: string, chunkSize: number): number[] {
-        const chunks: string[] = binaryString.match(new RegExp(`.{1,${chunkSize}}`, "g")) || [];
-        return chunks.map(chunk => parseInt(chunk, 2));
+    private splitNumStringToIntArray(str: string, padLength: number): number[] {
+        var parts = [],
+            i
+
+        if (padLength) {
+            str = this.padLeft(str, padLength)
+        }
+
+        for (i = str.length; i > settings.bits; i -= settings.bits) {
+            parts.push(parseInt(str.slice(i - settings.bits, i), 2))
+        }
+
+        parts.push(parseInt(str.slice(0, i), 2))
+
+        return parts
     }
 
     /**
@@ -462,6 +514,7 @@ export class Secrets {
         return x.map((xVal, i) =>
             this.constructPublicShareString(this.config.bits, xVal, this.bin2hex(y[i]))
         );
+
     }
 
 
@@ -486,7 +539,7 @@ export class Secrets {
         }
 
         // Calculate max shares and determine the ID length
-        const maxShares = Math.pow(2, bits) - 1;
+        const maxShares = (1 << bits) - 1;
         const idLength = maxShares.toString(this.config.radix).length;
 
         // Define a regex to extract the components of the share
@@ -508,11 +561,14 @@ export class Secrets {
         }
 
         // Return the extracted components as an object
-        return {
-            bits,
-            id,
-            data: match[3], // Hexadecimal data of the share
+        if (match && match[3]) {
+            return {
+                bits,
+                id,
+                data: match[3], // Hexadecimal data of the share
+            }
         }
+        throw new Error("Invalid share: Share data is missing.");
     };
 
 
@@ -566,7 +622,8 @@ export class Secrets {
         const secretBinary = result.slice(result.indexOf("1") + 1);
         return this.bin2hex(secretBinary);
     }
-    random(bits: number): string {
+
+    random(bits: number = this.config.bits): string {
         if (
             typeof bits !== "number" ||
             bits % 1 !== 0 ||
@@ -608,7 +665,6 @@ export class Secrets {
             , this.config
         );
     }
-
     static hex2str(hex: string): string {
 
         let str = '';
