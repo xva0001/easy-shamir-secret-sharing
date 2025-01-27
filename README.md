@@ -1,12 +1,16 @@
-# Warining 
-
-
-error here, testing now
-
 # Secrets Library
 
-`secrets_re.ts` 是一個用於秘密分享和重建的 TypeScript 庫，基於 Shamir 的秘密分享方案。此庫允許將一個秘密分割成多個分享，並且需要一定數量的分享才能重建原始秘密。
-`secrets_re.ts` is a TypeScript library for secret sharing and reconstruction based on Sh
+這個庫提供了一些方法來生成隨機數、分割秘密和重建秘密。
+This library provides methods to generate random numbers, split secrets, and reconstruct secrets.
+
+此庫是基於 [secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe) 和 [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing) 進行修改的。
+This library is based on modifications of [secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe) and [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing).
+
+修改的目的是使用 TypeScript 重寫 secrets.js-grempe 庫，以便在其他項目中使用，且不依賴於 Node 的 crypto 庫。
+The purpose of the modifications is to rewrite the secrets.js-grempe library using TypeScript for use in other projects without dependency on the Node crypto library.
+
+此庫提供了兩種編程風格：已實例化的物件風格和函數風格。
+This library provides two programming styles: an instantiated object style and a functional style.
 
 ## 安裝 / Installation
 
@@ -14,7 +18,7 @@ error here, testing now
 First, make sure you have installed the necessary dependencies:
 
 ```sh
-npm i secretsjs_grempe_rewrite
+npm i easy-shamir-secret-sharing
 ```
 
 ## 使用方法 / Usage
@@ -25,19 +29,11 @@ npm i secretsjs_grempe_rewrite
 Before using the Secrets class, you need to import and initialize it:
 
 ```Typescript
-import { Secrets } from './secrets_re';
+import { Secrets } from 'easy-shamir-secret-sharing';
+//or
+import { secrets } from 'easy-shamir-secret-sharing';
 
-const secrets = new Secrets();
-```
 
-### 生成隨機數 / Generate Random Number
-
-使用 random 方法生成指定位數的隨機數：
-Use the random method to generate a random number with the specified number of bits:
-
-```Typescript
-const randomValue = secrets.random(512);
-console.log(randomValue);
 ```
 
 ### 分割秘密 / Split Secret
@@ -64,14 +60,29 @@ console.log(combinedSecret);
 
 ```
 
-### 生成新分享
+### 示例代碼 / Example Code
 
-使用 newShare 方法生成新的分享：
-Use the newShare method to generate a new share:
+please run in async function
 
 ```Typescript
-const newShare = secrets.newShare(8, shares);
-console.log(newShare);
+import { Secrets, secrets as secretsInstance } from 'easy-shamir-secret-sharing'
+async function main()
+{
+    const message = "這是兩段重要的訊息";
+    let secrets : any = new Secrets(message, 4, 3); //in real, no any type used
+    await secrets.executeShares();
+    console.log("分割後的訊息段:", secrets.getSharesResult());
+    await secrets.executeCombine(secrets.getSharesResult());
+    console.log("還原後的密文:", secrets.getCombinedResult());
+    //or
+    console.log("另一種風格");
+    secrets = secretsInstance
+    const arr = await secrets.share(message, 4, 3)
+    console.log("分割後的訊息段:", arr);
+    const combined = await secrets.combine(arr)
+    console.log("還原後的密文:", combined);
+}
+main()
 ```
 
 ## 貢獻 / Contributing
@@ -87,15 +98,15 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## 額外 / Remain
 
-@preserve author Alexander Stetsyuk
-@preserve author Glenn Rempe <glenn@rempe.us>
-@license MIT
-
-reference: [https://www.npmjs.com/package/secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe)
-
+reference:
 The MIT License (MIT)
 Author of the original secrets.js library: Alexander Stetsyuk, Glenn Rempe
 Author of this fork and modifications: xva001
+@license MIT
+[https://www.npmjs.com/package/secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe)
+The Library used
+@license Apache-2.0
+[shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing)
 
  no warranty is given that this code is correct, and the author cannot be held responsible for any errors or omissions.
  rewrite by xva001
@@ -103,3 +114,9 @@ Author of this fork and modifications: xva001
 
 [repo](https://github.com/xva0001/secret_grempe_rewrite/tree/main)
 [npm](https://www.npmjs.com/package/secretsjs_grempe_rewrite?activeTab=readme)
+
+## 更新 / Update detail
+
+2025-01-27 change reference to [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing)
+
+First aims is making this work, and let other easy to use.

@@ -26,3 +26,9 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Compiled output
+dist/
+
+#testing
+test/
