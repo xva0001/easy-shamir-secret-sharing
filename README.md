@@ -3,11 +3,8 @@
 這個庫提供了一些方法來生成隨機數、分割秘密和重建秘密。
 This library provides methods to generate random numbers, split secrets, and reconstruct secrets.
 
-此庫是基於 [secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe) 和 [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing) 進行修改的。
-This library is based on modifications of [secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe) and [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing).
-
-修改的目的是使用 TypeScript 重寫 secrets.js-grempe 庫，以便在其他項目中使用，且不依賴於 Node 的 crypto 庫。
-The purpose of the modifications is to rewrite the secrets.js-grempe library using TypeScript for use in other projects without dependency on the Node crypto library.
+此庫是基於 [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing) 進行改善，以逹到更好用。
+This library is based on improvement of [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing).
 
 此庫提供了兩種編程風格：已實例化的物件風格和函數風格。
 This library provides two programming styles: an instantiated object style and a functional style.
@@ -100,10 +97,14 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 reference:
 The MIT License (MIT)
+
 Author of the original secrets.js library: Alexander Stetsyuk, Glenn Rempe
+
 Author of this fork and modifications: xva001
+
 @license MIT
 [https://www.npmjs.com/package/secrets.js-grempe](https://www.npmjs.com/package/secrets.js-grempe)
+
 The Library used
 @license Apache-2.0
 [shamir-secret-sharing](https://www.npmjs.com/package/shamir-secret-sharing)
