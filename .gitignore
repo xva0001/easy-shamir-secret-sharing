@@ -27,8 +27,6 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Compiled output
-dist/
 
 #testing
 test/
