@@ -1,24 +1,12 @@
-"use strict";
 //old deprecate library :
 //secretsjs_grempe_rewrite
 //this is library adapter 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Secrets = exports.secrets = void 0;
 //main funtion from shamir-secret-sharing
-const buffer_1 = require("buffer");
-const shamir_secret_sharing_1 = require("shamir-secret-sharing");
+import { Buffer } from "buffer";
+import { split, combine } from "shamir-secret-sharing";
 //style for initialed object
 //已實例化物件的風格
-exports.secrets = {
+export const secrets = {
     /**
      *
      * @param str  string to Uint8Array
@@ -38,25 +26,25 @@ exports.secrets = {
      * @param threshold  number of parts to combine(at least, combineArr.len < threshold, can't combine)
      * @returns  string[]  array of shares, Promise
      */
-    share: (secret, parts, threshold) => __awaiter(void 0, void 0, void 0, function* () {
-        const shares = yield (0, shamir_secret_sharing_1.split)(exports.secrets.toUint8Array(secret), parts, threshold);
-        return shares.map(share => buffer_1.Buffer.from(share).toString('hex'));
-    }),
+    share: async (secret, parts, threshold) => {
+        const shares = await split(secrets.toUint8Array(secret), parts, threshold);
+        return shares.map(share => Buffer.from(share).toString('hex'));
+    },
     /**
      *
      * @param shares  string[]  array of shares
      * @returns  string  combined secret, Promise
      */
-    combine: (shares) => __awaiter(void 0, void 0, void 0, function* () {
-        const uint8Array = shares.map(share => Uint8Array.from(buffer_1.Buffer.from(share, 'hex')));
-        const combinedUint8Array = yield (0, shamir_secret_sharing_1.combine)(uint8Array);
-        return exports.secrets.fromUint8Array(combinedUint8Array);
-    }),
+    combine: async (shares) => {
+        const uint8Array = shares.map(share => Uint8Array.from(Buffer.from(share, 'hex')));
+        const combinedUint8Array = await combine(uint8Array);
+        return secrets.fromUint8Array(combinedUint8Array);
+    },
 };
 /**
  * class sytle for secrets
  */
-class Secrets {
+export class Secrets {
     /**
      *
      * @param secret  string you want to be shared
@@ -96,10 +84,8 @@ class Secrets {
     getSettings() {
         return { parts: this.parts, threshold: this.threshold };
     }
-    executeShares() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.SharedResult = yield this.share(this.input, this.parts, this.threshold);
-        });
+    async executeShares() {
+        this.SharedResult = await this.share(this.input, this.parts, this.threshold);
     }
     getSharesResult() {
         return this.SharedResult;
@@ -118,23 +104,16 @@ class Secrets {
         this.clearInput();
         this.clearResult();
     }
-    executeCombine(shares) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.combinedResult = yield this.combine(shares);
-        });
+    async executeCombine(shares) {
+        this.combinedResult = await this.combine(shares);
     }
     getCombinedResult() {
         return this.combinedResult;
     }
-    share(secret, parts, threshold) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield exports.secrets.share(secret, parts, threshold);
-        });
+    async share(secret, parts, threshold) {
+        return await secrets.share(secret, parts, threshold);
     }
-    combine(shares) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield exports.secrets.combine(shares);
-        });
+    async combine(shares) {
+        return await secrets.combine(shares);
     }
 }
-exports.Secrets = Secrets;
