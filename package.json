@@ -1,7 +1,9 @@
 {
   "name": "easy-shamir-secret-sharing",
-  "version": "1.0.9",
-  "main": "src/secrets_re.ts",
+  "version": "1.0.10",
+  "main": "dist/secrets_re.js",
+  "module":"dist/secrets_re.js",
+  "types": "dist/secrets_re.d.ts",
   "files": [
     "src",
     "dist"
