@@ -4,6 +4,11 @@
   "main": "dist/secrets_re.js",
   "module":"dist/secrets_re.js",
   "types": "dist/secrets_re.d.ts",
+  "exports":{
+    "require": "./dist/secrets_re.js",
+    "import": "./dist/secrets_re.js",
+    "types" : "./dist/secrets_re.d.ts"
+  },
   "files": [
     "src",
     "dist"
